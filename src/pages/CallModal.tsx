@@ -1,60 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaDesktop, FaPhoneSlash, FaSpinner, FaExclamationTriangle, FaRedo, FaCamera, FaVolumeMute, FaVolumeUp } from 'react-icons/fa';
 import { useWebRTCCall } from '@/hooks/useWebRTCCall';
+import { CallConfig } from '@/types/call';
 
 interface CallModalProps {
+  callConfig: CallConfig;
   onClose: () => void;
-  roomId: string;
-  contact: { id: string; name: string; avatarUrl?: string };
-  currentUser: any;
-  isCaller: boolean;
 }
 
-export default function CallModal({ onClose, roomId, contact, currentUser, isCaller }: CallModalProps) {
+export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => {
   const [isWebRTCSupported, setIsWebRTCSupported] = useState<boolean | null>(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const pipVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Check WebRTC support
+  const {
+    localStream,
+    remoteStream,
+    callState,
+    connectionState,
+    iceConnectionState,
+    diagnostics,
+    startCall,
+    endCall,
+    toggleMute,
+    toggleVideo,
+    toggleScreenShare,
+    toggleCameraOverlay,
+    localVideoError,
+    remoteVideoError,
+    showCameraOverlay,
+    switchCamera,
+    muteRemote,
+    hasLocalTracks
+  } = useWebRTCCall(callConfig);
+
   useEffect(() => {
     const hasWebRTC = 'mediaDevices' in navigator && 'RTCPeerConnection' in window;
     setIsWebRTCSupported(hasWebRTC);
   }, []);
 
-  const {
-    // Refs
-    localVideoRef,
-    remoteVideoRef,
+  useEffect(() => {
+    if (localStream && localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
-    // State
-    status,
-    isMuted,
-    isCameraOff,
-    isScreenSharing,
-    error,
-    remoteVideoError,
-    diagnostics,
+  useEffect(() => {
+    if (remoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
-    // Methods
-    toggleMute,
-    toggleCamera,
-    toggleScreenShare,
-    endCall,
-    declineCall,
-    acceptCall,
-    retryCall,
-    switchCamera,
-    muteRemote
-  } = useWebRTCCall({
-    roomId,
-    isCaller,
-    contact,
-    currentUser,
-    onCallEnd: onClose
-  });
-
-  // Show connecting state for first 5 seconds
   useEffect(() => {
     const timer = setTimeout(() => setIsConnecting(false), 5000);
     return () => clearTimeout(timer);
@@ -66,7 +71,21 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
     }
   };
 
-  // Browser compatibility check
+  const handleMuteToggle = useCallback(() => {
+    toggleMute();
+    setIsMuted(!isMuted);
+  }, [toggleMute, isMuted]);
+
+  const handleVideoToggle = useCallback(() => {
+    toggleVideo();
+    setIsVideoEnabled(!isVideoEnabled);
+  }, [toggleVideo, isVideoEnabled]);
+
+  const handleScreenShareToggle = useCallback(() => {
+    toggleScreenShare();
+    setIsScreenSharing(!isScreenSharing);
+  }, [toggleScreenShare, isScreenSharing]);
+
   if (isWebRTCSupported === false) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -87,73 +106,9 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
     );
   }
 
-  const renderStatusOverlay = () => {
-    if (status === 'connecting' && isConnecting) {
-      return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-          <div className="text-center">
-            <FaSpinner className="w-8 h-8 animate-spin mx-auto mb-2" />
-            <p>Установка соединения...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (status === 'ringing') {
-      return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">Входящий звонок</h3>
-            <p className="mb-4">{contact.name}</p>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={acceptCall}
-                className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600"
-              >
-                Принять
-              </button>
-              <button
-                onClick={declineCall}
-                className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600"
-              >
-                Отклонить
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (diagnostics.localTracks.length === 0) {
-      return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-          <div className="text-center">
-            <FaExclamationTriangle className="w-8 h-8 mx-auto mb-2" />
-            <p>Не удалось получить доступ к камере/микрофону</p>
-            <p className="text-sm mt-2">Проверьте разрешения браузера</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (!isConnecting && diagnostics.remoteTracks.length === 0) {
-      return (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-          <div className="text-center">
-            <FaExclamationTriangle className="w-8 h-8 mx-auto mb-2" />
-            <p>Нет видео/аудио с другой стороны</p>
-            <p className="text-sm mt-2">Возможно, проблемы с сетью или настройками</p>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const isCallActive = status === 'accepted';
-  const hasMediaError = diagnostics.localTracks.length === 0;
-  const hasConnectionError = !isConnecting && diagnostics.remoteTracks.length === 0;
+  const isCallActive = callState === 'accepted';
+  const hasMediaError = diagnostics.localTracks?.length === 0;
+  const hasConnectionError = !isConnecting && diagnostics.remoteTracks?.length === 0;
 
   return (
     <motion.div
@@ -174,16 +129,15 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${
-              status === 'accepted' ? 'bg-green-500' :
-              status === 'connecting' ? 'bg-yellow-500' :
-              status === 'ringing' ? 'bg-blue-500' :
-              'bg-red-500'
+              callState === 'accepted' ? 'bg-green-500' :
+              callState === 'connecting' ? 'bg-yellow-500' :
+              callState === 'ringing' ? 'bg-blue-500' : 'bg-red-500'
             }`} />
             <span className="text-sm font-medium">
-              {status === 'accepted' ? 'Соединение установлено' :
-               status === 'connecting' ? 'Установка соединения...' :
-               status === 'ringing' ? 'Входящий звонок' :
-               'Соединение разорвано'}
+              {callState === 'accepted' ? 'Соединение установлено' :
+                callState === 'connecting' ? 'Установка соединения...' :
+                  callState === 'ringing' ? 'Входящий звонок' :
+                    'Соединение разорвано'}
             </span>
           </div>
           {diagnostics.warning && (
@@ -193,7 +147,6 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
             </div>
           )}
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           {/* Remote Video */}
           <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
@@ -203,14 +156,23 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
               playsInline
               className="w-full h-full object-cover"
             />
-            {renderStatusOverlay()}
+            {/* PiP video поверх экрана */}
+            {isScreenSharing && showCameraOverlay && (
+              <video
+                ref={pipVideoRef}
+                autoPlay
+                playsInline
+                className="absolute bottom-4 right-4 w-36 h-28 rounded-lg border-2 border-white shadow-xl pointer-events-none z-10"
+                muted
+              />
+            )}
+            {/* Status overlays/ошибки/diagnostics можно добавить по желанию */}
             {remoteVideoError && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
                 {remoteVideoError}
               </div>
             )}
           </div>
-
           {/* Local Video */}
           <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
             <video
@@ -220,7 +182,7 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
               muted
               className="w-full h-full object-cover"
             />
-            {diagnostics.localTracks.length === 0 && (
+            {diagnostics.localTracks?.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
                 <div className="text-center">
                   <FaExclamationTriangle className="w-8 h-8 mx-auto mb-2" />
@@ -230,59 +192,52 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
             )}
           </div>
         </div>
-
         {/* Controls */}
         <div className="mt-4 flex justify-center gap-4">
           <button
-            onClick={toggleMute}
-            disabled={!isCallActive || hasMediaError}
-            className={`p-3 rounded-full ${
-              isMuted ? 'bg-red-500' : 'bg-gray-200'
-            } hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleMuteToggle}
+            disabled={!isCallActive}
+            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isMuted ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={isMuted ? "Включить микрофон" : "Выключить микрофон"}
           >
-            {isMuted ? (
-              <FaMicrophoneSlash className="w-6 h-6 text-white" />
-            ) : (
-              <FaMicrophone className="w-6 h-6 text-gray-700" />
-            )}
+            {isMuted
+              ? <FaMicrophoneSlash className="w-6 h-6 text-white" />
+              : <FaMicrophone className="w-6 h-6 text-white" />}
           </button>
-
           <button
-            onClick={toggleCamera}
-            disabled={!isCallActive || hasMediaError}
-            className={`p-3 rounded-full ${
-              isCameraOff ? 'bg-red-500' : 'bg-gray-200'
-            } hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={isCameraOff ? "Включить камеру" : "Выключить камеру"}
+            onClick={handleVideoToggle}
+            disabled={!isCallActive}
+            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : !isVideoEnabled ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={!isVideoEnabled ? "Включить видео" : "Выключить видео"}
           >
-            {isCameraOff ? (
-              <FaVideoSlash className="w-6 h-6 text-white" />
-            ) : (
-              <FaVideo className="w-6 h-6 text-gray-700" />
-            )}
+            {!isVideoEnabled
+              ? <FaVideoSlash className="w-6 h-6 text-white" />
+              : <FaVideo className="w-6 h-6 text-white" />}
           </button>
-
           <button
-            onClick={toggleScreenShare}
-            disabled={!isCallActive || hasMediaError}
-            className={`p-3 rounded-full ${
-              isScreenSharing ? 'bg-blue-500' : 'bg-gray-200'
-            } hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleScreenShareToggle}
+            disabled={!isCallActive}
+            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isScreenSharing ? 'bg-green-500' : 'bg-red-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={isScreenSharing ? "Остановить демонстрацию экрана" : "Начать демонстрацию экрана"}
           >
-            <FaDesktop className={`w-6 h-6 ${isScreenSharing ? 'text-white' : 'text-gray-700'}`} />
+            <FaDesktop className="w-6 h-6 text-white" />
           </button>
-
+          <button
+            onClick={toggleCameraOverlay}
+            disabled={!isScreenSharing}
+            className={`p-3 rounded-full ${showCameraOverlay ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={showCameraOverlay ? "Отключить камеру поверх" : "Включить камеру поверх"}
+          >
+            <FaVideo className="w-6 h-6 text-white" />
+          </button>
           <button
             onClick={switchCamera}
-            disabled={!isCallActive || hasMediaError}
+            disabled={!isCallActive}
             className="p-3 rounded-full bg-gray-200 hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Сменить камеру"
           >
             <FaCamera className="w-6 h-6 text-gray-700" />
           </button>
-
           <button
             onClick={muteRemote}
             disabled={!isCallActive || hasConnectionError}
@@ -291,17 +246,19 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
           >
             <FaVolumeUp className="w-6 h-6 text-gray-700" />
           </button>
-
           <button
             onClick={endCall}
-            className="p-3 rounded-full bg-red-500 hover:bg-red-600"
+            className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white"
             title="Завершить звонок"
           >
-            <FaPhoneSlash className="w-6 h-6 text-white" />
+            <FaPhoneSlash className="w-6 h-6" />
           </button>
         </div>
-
-        {/* Error Display with Retry */}
+        {/* Bitrate and tracks info */}
+        <div className="mt-4 text-sm text-gray-600 flex flex-col items-center">
+          <div>Bitrate: <span className="font-semibold">{(diagnostics.bitrate / 1000).toFixed(1)} kbps</span></div>
+          <div>Local Tracks: <span className="font-semibold">{diagnostics.localTracks?.length || 0}</span> | Remote Tracks: <span className="font-semibold">{diagnostics.remoteTracks?.length || 0}</span></div>
+        </div>
         {error && (
           <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -317,8 +274,7 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
             </button>
           </div>
         )}
-
-        {/* Diagnostics Toggle */}
+        {/* Diagnostics (по желанию, для разработки) */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-4">
             <button
@@ -329,8 +285,6 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
             </button>
           </div>
         )}
-
-        {/* Diagnostics Panel */}
         {process.env.NODE_ENV === 'development' && showDiagnostics && (
           <div className="mt-4 p-4 bg-gray-100 rounded-lg text-sm">
             <h4 className="font-semibold mb-2">Diagnostics:</h4>
@@ -338,7 +292,7 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
               <div>ICE State: {diagnostics.iceState}</div>
               <div>Connection State: {diagnostics.connectionState}</div>
               <div>Has Relay: {diagnostics.hasRelay ? 'Yes' : 'No'}</div>
-              <div>Bitrate: {diagnostics.bitrate.toFixed(2)} kbps</div>
+              <div>Bitrate: {diagnostics.bitrate?.toFixed(2)} kbps</div>
             </div>
             <div className="mt-2">
               <div>ICE Candidates:</div>
@@ -358,4 +312,4 @@ export default function CallModal({ onClose, roomId, contact, currentUser, isCal
       </motion.div>
     </motion.div>
   );
-} 
+}

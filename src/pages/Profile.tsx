@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db, auth, storage } from "../lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "../components/ui/use-toast";
@@ -37,6 +37,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const [showEdit, setShowEdit] = useState(false);
+  const [friends, setFriends] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -70,6 +71,19 @@ export default function Profile() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Получить список друзей
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (!userData?.friends) return setFriends([]);
+      const friendIds = Object.keys(userData.friends || {});
+      if (friendIds.length === 0) return setFriends([]);
+      const usersSnap = await getDocs(collection(db, "users"));
+      const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setFriends(allUsers.filter(u => friendIds.includes(u.id)));
+    };
+    fetchFriends();
+  }, [userData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -201,6 +215,43 @@ export default function Profile() {
           >
             Настройки
           </button>
+        </div>
+        {/* Список друзей */}
+        <div className="mb-6">
+          <div className="font-semibold text-lg mb-2 text-[#A166FF]">Друзья</div>
+          {friends.length === 0 ? (
+            <div className="text-gray-400">Нет друзей</div>
+          ) : (
+            <div className="flex flex-wrap gap-4">
+              {friends.map(friend => (
+                <div key={friend.id} className="flex items-center gap-3 bg-[#F3EDFF] rounded-xl px-4 py-2">
+                  <Avatar src={friend.avatarUrl} name={friend.name} email={friend.email} size={40} />
+                  <div>
+                    <div className="font-medium text-[#1E0E62]">{friend.name || 'Пользователь'}</div>
+                    <div className="text-xs text-gray-500">{friend.email}</div>
+                  </div>
+                  <button
+                    className="ml-2 px-3 py-1 rounded bg-red-100 text-red-600 text-xs font-semibold hover:bg-red-200"
+                    onClick={async () => {
+                      // Удалить друга у себя
+                      const newFriends = { ...userData.friends };
+                      delete newFriends[friend.id];
+                      await updateDoc(doc(db, 'users', auth.currentUser.uid), { friends: newFriends });
+                      setUserData((prev: any) => ({ ...prev, friends: newFriends }));
+                    }}
+                  >Удалить</button>
+                  <button
+                    className="ml-2 px-3 py-1 rounded bg-[#A166FF] text-white text-xs font-semibold hover:bg-[#8A4FD8]"
+                    onClick={() => {
+                      // Перейти в чат с этим пользователем
+                      const chatId = [auth.currentUser.uid, friend.id].sort().join('_');
+                      navigate(`/chat?chatId=${chatId}`);
+                    }}
+                  >Открыть чат</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         {showEdit ? (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

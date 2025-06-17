@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import Index from "./pages/Index";
+import { Index } from "./pages/Index";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import NotFound from "./pages/NotFound";
@@ -19,30 +19,33 @@ import NewsPage from "./pages/News";
 import TopBar from "@/components/TopBar";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MaterialsPage from "./pages/Materials";
 import SettingsPage from "./pages/Settings";
 import FAQPage from "./pages/FAQ";
 import TestCall from "./pages/TestCall";
 import { useIncomingCall } from "@/hooks/useIncomingCall";
 import IncomingCallModal from "@/components/IncomingCallModal";
-import CallModal from "@/pages/CallModal";
+import { CallModal } from "@/pages/CallModal";
+import VacancyDetails from "./pages/VacancyDetails";
+import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
+import FriendsPage from "./pages/Friends";
 
 const queryClient = new QueryClient();
 
-type ActiveCall = { roomId: string; contact: any; isCaller: boolean };
-
-function App() {
-  const [profile, setProfile] = useState<{ avatarUrl?: string } | null>(null);
+export const App: React.FC = () => {
+  const { user } = useAuth();
   const { incomingCall, acceptCall, declineCall } = useIncomingCall();
-  const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [callConfig, setCallConfig] = useState<any>(null);
   const [callerProfile, setCallerProfile] = useState<any>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
 
   // Ждем инициализации auth
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('[App] Auth state changed:', user?.uid);
       setIsAuthReady(true);
     });
     return () => unsubscribe();
@@ -50,33 +53,22 @@ function App() {
 
   // Диагностические логи
   useEffect(() => {
-    if (!isAuthReady) {
-      console.log('[App] Auth не инициализирован');
-      return;
-    }
-
-    console.log('[App] currentUser:', auth.currentUser?.uid);
-    console.log('[App] incomingCall:', incomingCall);
+    if (!isAuthReady) return;
+    // Можно добавить логи
   }, [isAuthReady, auth.currentUser, incomingCall]);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!auth.currentUser) {
-        console.log('[App] Нет авторизованного пользователя для получения профиля');
-        return;
-      }
-
+      if (!auth.currentUser) return;
       try {
         const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
         if (snap.exists()) {
-          console.log('[App] Профиль получен:', snap.data());
           setProfile(snap.data() as any);
         } else {
-          console.log('[App] Профиль не найден, используем данные из auth');
           setProfile({ avatarUrl: auth.currentUser.photoURL || "" });
         }
       } catch (err) {
-        console.error('[App] Ошибка при получении профиля:', err);
+        setProfile({ avatarUrl: auth.currentUser?.photoURL || "" });
       }
     };
     fetchProfile();
@@ -84,53 +76,55 @@ function App() {
 
   useEffect(() => {
     const fetchCallerProfile = async () => {
-      if (!incomingCall?.callerId) {
-        console.log('[App] Нет callerId для получения профиля звонящего');
-        return;
-      }
-
+      if (!incomingCall?.callerId) return;
       try {
         const snap = await getDoc(doc(db, "users", incomingCall.callerId));
         if (snap.exists()) {
-          console.log('[App] Профиль звонящего получен:', snap.data());
           setCallerProfile(snap.data());
         } else {
-          console.log('[App] Профиль звонящего не найден');
           setCallerProfile(null);
         }
       } catch (err) {
-        console.error('[App] Ошибка при получении профиля звонящего:', err);
+        setCallerProfile(null);
       }
     };
     fetchCallerProfile();
   }, [incomingCall?.callerId]);
 
-  // Открываем CallModal для callee при входящем звонке
+  // Эффект для обработки входящего звонка
   useEffect(() => {
-    if (!incomingCall) {
-      console.log('[App] Нет входящего звонка, закрываю CallModal');
-      setActiveCall(null);
-      return;
-    }
-
-    if (incomingCall.status === 'ringing' || incomingCall.status === 'accepted') {
-      console.log('[App] Входящий звонок, открываю CallModal для callee:', incomingCall);
-      setActiveCall({
+    if (incomingCall && user) {
+      setCallConfig({
         roomId: incomingCall.roomId,
+        isCaller: false,
         contact: {
           id: incomingCall.callerId,
           name: incomingCall.callerName,
           avatarUrl: incomingCall.callerAvatar
         },
-        isCaller: false
+        currentUser: {
+          id: user.uid,
+          name: profile?.displayName || 'User',
+          avatarUrl: profile?.photoURL || profile?.avatarUrl
+        },
+        onCallEnd: () => {
+          setShowCallModal(false);
+          setCallConfig(null);
+        }
       });
+      setShowCallModal(true);
+    } else {
+      setShowCallModal(false);
+      setCallConfig(null);
     }
-  }, [incomingCall]);
+  }, [incomingCall, user, profile]);
 
-  if (!isAuthReady) {
-    console.log('[App] Ожидание инициализации auth');
-    return null;
-  }
+  const handleCloseCallModal = () => {
+    setShowCallModal(false);
+    setCallConfig(null);
+  };
+
+  if (!isAuthReady) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -152,20 +146,10 @@ function App() {
             );
           })()}
           {/* CallModal для callee (isCaller: false) */}
-          {activeCall && auth.currentUser && (
+          {showCallModal && callConfig && (
             <CallModal
-              onClose={() => { 
-                setActiveCall(null); 
-                console.log('[App] CallModal закрыт');
-              }}
-              roomId={activeCall.roomId}
-              contact={{
-                id: activeCall.contact.id,
-                name: callerProfile?.name || activeCall.contact.name,
-                avatarUrl: callerProfile?.avatarUrl || activeCall.contact.avatarUrl
-              }}
-              currentUser={auth.currentUser}
-              isCaller={activeCall.isCaller}
+              callConfig={callConfig}
+              onClose={handleCloseCallModal}
             />
           )}
         </BrowserRouter>
@@ -201,6 +185,11 @@ function AppRoutes({ profile }: { profile: any }) {
         <Route path="/jobs" element={
           <ProtectedRoute>
             <Jobs />
+          </ProtectedRoute>
+        } />
+        <Route path="/jobs/:id" element={
+          <ProtectedRoute>
+            <VacancyDetails />
           </ProtectedRoute>
         } />
         <Route path="/schedule" element={
@@ -243,6 +232,7 @@ function AppRoutes({ profile }: { profile: any }) {
             <TestCall />
           </ProtectedRoute>
         } />
+        <Route path="/friends" element={<FriendsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

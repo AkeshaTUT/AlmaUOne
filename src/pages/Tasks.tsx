@@ -3,6 +3,7 @@ import { useTaskStore, Task } from '../store/taskStore';
 import { format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import BackButton from "@/components/BackButton";
+import { useNotifications } from "@/hooks/useNotifications";
 
 // Вспомогательная функция для форматирования даты
 const formatDate = (dateString: string) => {
@@ -32,6 +33,7 @@ const TasksPage: React.FC = () => {
     priority: 'medium',
     status: 'pending'
   });
+  const { showNotification } = useNotifications();
   
   useEffect(() => {
     if (storedTasks.length === 0) {
@@ -119,6 +121,7 @@ const TasksPage: React.FC = () => {
       updateTask(editingTask.id, newTask);
     } else {
       addTask(newTask);
+      showNotification(`Новая задача: ${newTask.title}`);
     }
     handleCloseDialog();
   };

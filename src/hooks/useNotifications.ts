@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export function useNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -21,15 +23,24 @@ export function useNotifications() {
     }
   }, []);
 
-  const showNotification = (title: string, options?: NotificationOptions) => {
+  const showNotification = async (title: string, options?: NotificationOptions) => {
     if (!('Notification' in window)) return;
-    
+    const userId = (window as any).auth?.currentUser?.uid || null;
+    // Сохраняем уведомление в Firestore
+    if (userId) {
+      await addDoc(collection(db, 'notifications'), {
+        userId,
+        title,
+        options,
+        timestamp: serverTimestamp(),
+        isRead: false
+      });
+    }
     if (Notification.permission === 'granted') {
       new Notification(title, {
-        icon: '/favicon.ico', // Путь к иконке
+        icon: '/favicon.ico',
         badge: '/favicon.ico',
-        vibrate: [200, 100, 200], // Вибрация для мобильных устройств
-        requireInteraction: true, // Уведомление не исчезнет само
+        requireInteraction: true,
         ...options
       });
     } else if (Notification.permission !== 'denied') {
@@ -38,7 +49,6 @@ export function useNotifications() {
           new Notification(title, {
             icon: '/favicon.ico',
             badge: '/favicon.ico',
-            vibrate: [200, 100, 200],
             requireInteraction: true,
             ...options
           });

@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 const menu = [
   { icon: "🏠", label: "Home", path: "/" },
   { icon: "🗂️", label: "Tasks", path: "/tasks" },
+  { icon: "👥", label: "Friends", path: "/friends" },
   { icon: "📅", label: "Schedule", path: "/schedule" },
   { icon: "📚", label: "Materials", path: "/materials" },
   { icon: "🗒️", label: "Courses", path: "/courses" },

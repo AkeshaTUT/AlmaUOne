@@ -7,15 +7,22 @@ import {
   User
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth, db } from '../services/firebase';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        // Сохраняем токен в localStorage
+        const token = await user.getIdToken();
+        localStorage.setItem('userToken', token);
+      } else {
+        localStorage.removeItem('userToken');
+      }
       setLoading(false);
     });
 
@@ -52,6 +59,7 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem('userToken');
     } catch (error: any) {
       throw new Error(error.message);
     }

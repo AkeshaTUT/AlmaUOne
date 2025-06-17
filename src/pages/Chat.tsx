@@ -9,11 +9,13 @@ import emojiIcon from "@/assets/emoji.png";
 import microphoneIcon from "@/assets/microphone.png";
 import sendMessageIcon from "@/assets/send_message.png";
 import Sidebar from "@/components/Sidebar";
-import CallModal from "./CallModal";
+import { CallModal } from "./CallModal";
 import BackButton from "@/components/BackButton";
 import EmojiPicker from "emoji-picker-react";
 import { Theme } from "emoji-picker-react";
 import { useIncomingCall } from "@/hooks/useIncomingCall";
+import searchIcon from "@/assets/search.png";
+import { useNotifications } from "@/hooks/useNotifications";
 
 function formatTime(date: Date | string) {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -49,6 +51,7 @@ export default function Chat() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const user = auth.currentUser;
   const [showEmoji, setShowEmoji] = useState(false);
@@ -59,6 +62,26 @@ export default function Chat() {
   const [isRecording, setIsRecording] = useState(false);
   const storage = getStorage();
   const { incomingCall } = useIncomingCall();
+  const { showNotification } = useNotifications();
+
+  // Filter chats and contacts based on search query
+  const filteredChats = chats.filter(chat => {
+    const otherId = chat.members.find((id: string) => id !== user?.uid);
+    const contact = contacts.find(c => c.id === otherId);
+    return contact?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Найти пользователя по поиску, если чата с ним нет
+  const foundUser = searchQuery
+    ? contacts.find(
+        c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !chats.some(chat => chat.members.includes(c.id))
+      )
+    : null;
+
+  const filteredContacts = contacts.filter(contact => 
+    contact.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Получаем список всех пользователей (контактов)
   useEffect(() => {
@@ -131,10 +154,31 @@ export default function Chat() {
   const handleAddFriend = async () => {
     if (!user || !selectedChat?.contact) return;
     try {
+      // Получить имя текущего пользователя
+      let userName = user.displayName;
+      if (!userName) {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        userName = userSnap.exists() ? userSnap.data().name : user.email;
+      }
+      // Добавить в друзья текущему пользователю
       await setDoc(doc(db, "users", user.uid), {
         friends: { [selectedChat.contact.id]: true }
       }, { merge: true });
-      alert("Пользователь добавлен в друзья!");
+      // Добавить в друзья выбранному пользователю
+      await setDoc(doc(db, "users", selectedChat.contact.id), {
+        friends: { [user.uid]: true }
+      }, { merge: true });
+      // Создать уведомление для выбранного пользователя
+      await addDoc(collection(db, "notifications"), {
+        userId: selectedChat.contact.id,
+        title: `Вас добавил в друзья: ${userName}`,
+        fromUserId: user.uid,
+        fromUserName: userName,
+        type: 'friend_request',
+        timestamp: serverTimestamp(),
+        isRead: false
+      });
+      showNotification("Пользователь добавлен в друзья!");
     } catch (e) {
       alert("Ошибка при добавлении в друзья");
     }
@@ -299,8 +343,21 @@ export default function Chat() {
       {/* Левая колонка: список чатов */}
       <div className="hidden md:flex flex-col w-[320px] border-r border-[#EAD7FF] bg-white/80 h-screen overflow-y-auto shadow-lg z-10">
         <div className="p-6 font-bold text-2xl text-[#A166FF] border-b border-[#EAD7FF]">Чаты</div>
+        {/* Search input */}
+        <div className="p-4 border-b border-[#EAD7FF]">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Поиск чатов..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] bg-white"
+            />
+            <img src={searchIcon} alt="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" />
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto">
-          {chats.map(chat => {
+          {filteredChats.map(chat => {
             const otherId = chat.members.find((id: string) => id !== user?.uid);
             const contact = contacts.find(c => c.id === otherId);
             return (
@@ -320,17 +377,21 @@ export default function Chat() {
               </div>
             );
           })}
-        </div>
-        <div className="p-6 font-bold text-lg text-[#A166FF] border-t border-[#EAD7FF]">Контакты</div>
-        <div className="flex-1 overflow-y-auto pb-4">
-          {contacts.map(contact => (
-            <div key={contact.id} className="flex items-center gap-3 px-5 py-3 cursor-pointer rounded-xl transition-all duration-150 mb-1 hover:bg-[#F3EDFF]" onClick={() => startChat(contact)}>
-              <span className="w-12 h-12 rounded-full bg-[#EAD7FF] flex items-center justify-center text-xl font-bold text-[#A166FF] overflow-hidden">
-                {contact.avatarUrl ? <img src={contact.avatarUrl} alt="avatar" className="w-12 h-12 rounded-full object-cover" /> : (contact.name?.[0] || "?")}
+          {/* Если нет чатов, но найден пользователь по поиску — показать кнопку создания чата */}
+          {filteredChats.length === 0 && foundUser && (
+            <div className="flex flex-col items-center justify-center py-8">
+              <span className="w-16 h-16 rounded-full bg-[#EAD7FF] flex items-center justify-center text-2xl font-bold text-[#A166FF] mb-4 overflow-hidden">
+                {foundUser.avatarUrl ? <img src={foundUser.avatarUrl} alt="avatar" className="w-16 h-16 rounded-full object-cover" /> : (foundUser.name?.[0] || "?")}
               </span>
-              <div className="font-semibold text-[#1E0E62] truncate">{contact.name || "Пользователь"}</div>
+              <div className="font-semibold text-lg text-[#1E0E62] mb-2">{foundUser.name}</div>
+              <button
+                className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+                onClick={() => startChat(foundUser)}
+              >
+                Начать чат
+              </button>
             </div>
-          ))}
+          )}
         </div>
       </div>
       {/* Правая часть: полноэкранный чат */}
@@ -438,11 +499,14 @@ export default function Chat() {
       </div>
       {callOpen && selectedChat && (
         <CallModal
+          callConfig={{
+            roomId: incomingCall?.roomId || getChatId(user.uid, selectedChat.contact.id),
+            isCaller: !incomingCall || (incomingCall.callerId !== user.uid),
+            contact: selectedChat.contact,
+            currentUser: auth.currentUser,
+            onCallEnd: () => { setCallOpen(false); console.log('[CallModal] Закрыт'); }
+          }}
           onClose={() => { setCallOpen(false); console.log('[CallModal] Закрыт'); }}
-          roomId={incomingCall?.roomId || getChatId(user.uid, selectedChat.contact.id)}
-          contact={selectedChat.contact}
-          currentUser={auth.currentUser}
-          isCaller={!incomingCall || (incomingCall.callerId !== user.uid)}
         />
       )}
     </div>
