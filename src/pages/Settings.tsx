@@ -4,6 +4,23 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { updateProfile, updatePassword } from 'firebase/auth';
 import BackButton from '@/components/BackButton';
 import Avatar from '@/components/Avatar';
+import { motion } from 'framer-motion';
+import { 
+  Settings, 
+  User, 
+  Mail, 
+  Building, 
+  GraduationCap, 
+  Phone, 
+  Edit, 
+  Save, 
+  X, 
+  Eye, 
+  EyeOff, 
+  Lock,
+  Camera
+} from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 const SettingsPage: React.FC = () => {
   const user = auth.currentUser;
@@ -110,134 +127,258 @@ const SettingsPage: React.FC = () => {
   // TODO: реализовать загрузку аватарки в Storage и обновление avatarUrl
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <BackButton className="mb-4" />
-      <div className="max-w-3xl mx-auto bg-white dark:bg-[#232336] rounded-2xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-[#1E0E62] dark:text-white mb-8">Настройки</h1>
-        {message && <div className="mb-4 text-green-600">{message}</div>}
-        {error && <div className="mb-4 text-red-600">{error}</div>}
-        <div className="flex flex-col items-center mb-8">
-          <Avatar src={avatarPreview || profile.avatarUrl} name={profile.name} email={profile.email} size={80} />
-          <label className="mt-2 cursor-pointer text-[#A166FF] hover:underline">
+    <motion.div 
+      className="min-h-screen bg-[#F8F6FB] p-2 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <BackButton className="mb-2 sm:mb-4" />
+      <motion.div 
+        className="max-w-full sm:max-w-3xl mx-auto bg-white dark:bg-[#232336] rounded-2xl shadow-lg p-2 sm:p-8"
+        initial={{ y: 50, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <motion.h1 
+          className="text-2xl sm:text-3xl font-bold text-[#1E0E62] dark:text-white mb-4 sm:mb-8 flex items-center gap-2 sm:gap-3"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-[#A166FF]" />
+          Настройки
+        </motion.h1>
+        
+        <AnimatePresence>
+          {message && (
+            <motion.div 
+              className="mb-4 text-green-600 p-3 bg-green-50 rounded-lg"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+            >
+              {message}
+            </motion.div>
+          )}
+          {error && (
+            <motion.div 
+              className="mb-4 text-red-600 p-3 bg-red-50 rounded-lg"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        <motion.div 
+          className="flex flex-col items-center mb-4 sm:mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Avatar src={avatarPreview || profile.avatarUrl} name={profile.name} email={profile.email} size={72} />
+          <motion.label 
+            className="mt-2 cursor-pointer text-[#A166FF] hover:underline flex items-center gap-2 text-sm"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Camera className="w-4 h-4" />
             Сменить аватар
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-          </label>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div>
-            <label className="block text-sm font-medium mb-1">Имя</label>
+          </motion.label>
+        </motion.div>
+        
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <User className="w-4 h-4 text-[#A166FF]" />
+              Имя
+            </label>
             <input
               type="text"
               name="name"
               value={profile.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               disabled={!editMode}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+          </motion.div>
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#A166FF]" />
+              Email
+            </label>
             <input
               type="email"
               name="email"
               value={profile.email}
               disabled
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-gray-100 dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-gray-100 dark:bg-[#181826] dark:text-white"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Университет</label>
+          </motion.div>
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+          >
+            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <Building className="w-4 h-4 text-[#A166FF]" />
+              Университет
+            </label>
             <input
               type="text"
               name="university"
               value={profile.university}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               disabled={!editMode}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Факультет</label>
+          </motion.div>
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+          >
+            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-[#A166FF]" />
+              Факультет
+            </label>
             <input
               type="text"
               name="faculty"
               value={profile.faculty}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               disabled={!editMode}
             />
-          </div>
-          <div>
+          </motion.div>
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1.0 }}
+          >
             <label className="block text-sm font-medium mb-1">Курс</label>
             <input
               type="text"
               name="year"
               value={profile.year}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               disabled={!editMode}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Телефон</label>
+          </motion.div>
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1.1 }}
+          >
+            <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <Phone className="w-4 h-4 text-[#A166FF]" />
+              Телефон
+            </label>
             <input
               type="text"
               name="phone"
               value={profile.phone}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               disabled={!editMode}
             />
-          </div>
-          <div className="md:col-span-2">
+          </motion.div>
+          <motion.div 
+            className="md:col-span-2"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+          >
             <label className="block text-sm font-medium mb-1">О себе</label>
             <textarea
               name="about"
               value={profile.about}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
               rows={3}
               disabled={!editMode}
             />
-          </div>
-        </div>
-        <div className="flex gap-4 mb-8">
+          </motion.div>
+        </motion.div>
+        
+        <motion.div 
+          className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.3 }}
+        >
           {editMode ? (
             <>
-              <button
+              <motion.button
                 onClick={handleSave}
-                className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+                className="px-6 py-2 rounded-lg bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2"
                 disabled={loading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
+                <Save className="w-4 h-4" />
                 Сохранить
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setEditMode(false)}
-                className="px-6 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+                className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-colors duration-200 flex items-center gap-2"
                 disabled={loading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
+                <X className="w-4 h-4" />
                 Отмена
-              </button>
+              </motion.button>
             </>
           ) : (
-            <button
+            <motion.button
               onClick={() => setEditMode(true)}
-              className="px-6 py-2 rounded bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition"
+              className="px-6 py-2 rounded-lg bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition-colors duration-200 flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              <Edit className="w-4 h-4" />
               Редактировать
-            </button>
+            </motion.button>
           )}
-        </div>
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-[#1E0E62] dark:text-white">Смена пароля</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        </motion.div>
+        
+        <motion.div 
+          className="mb-4 sm:mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.4 }}
+        >
+          <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 text-[#1E0E62] dark:text-white flex items-center gap-2">
+            <Lock className="w-5 h-5 text-[#A166FF]" />
+            Смена пароля
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-4">
             <input
               type={showPassword ? 'text' : 'password'}
               name="new"
               placeholder="Новый пароль"
               value={passwords.new}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
             />
             <input
               type={showPassword ? 'text' : 'password'}
@@ -245,24 +386,30 @@ const SettingsPage: React.FC = () => {
               placeholder="Повторите пароль"
               value={passwords.confirm}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 rounded border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white"
+              className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] bg-white dark:bg-[#181826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200"
             />
-            <button
+            <motion.button
               onClick={() => setShowPassword(v => !v)}
-              className="px-4 py-2 rounded bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition"
+              className="px-4 py-2 rounded-lg bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition-colors duration-200 flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               {showPassword ? 'Скрыть' : 'Показать'}
-            </button>
+            </motion.button>
           </div>
-          <button
+          <motion.button
             onClick={handlePasswordSave}
-            className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+            className="px-6 py-2 rounded-lg bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
+            <Lock className="w-4 h-4" />
             Сменить пароль
-          </button>
-        </div>
-      </div>
-    </div>
+          </motion.button>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -4,6 +4,8 @@ import { auth } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, orderBy, updateDoc, doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import React from "react";
+import { requestFirebaseNotificationPermission, messaging } from '@/lib/firebase';
+import { onMessage } from 'firebase/messaging';
 
 function useTheme() {
   const [theme, setTheme] = useState(
@@ -44,9 +46,26 @@ export default function TopBar({ profile }: { profile: { avatarUrl?: string; nam
     const q = query(collection(db, "notifications"), where("userId", "==", user.uid), orderBy("timestamp", "desc"));
     const unsub = onSnapshot(q, snap => {
       setNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, error => {
+      console.error("Firestore Listen error (notifications):", error);
     });
     return () => unsub();
   }, [user]);
+
+  useEffect(() => {
+    requestFirebaseNotificationPermission().then(token => {
+      if (token) {
+        // Здесь можно отправить токен на сервер или в Firestore
+        console.log('FCM Token:', token);
+      }
+    });
+    const unsubscribe = onMessage(messaging, (payload) => {
+      if (payload?.notification?.title) {
+        alert(`Push: ${payload.notification.title}\n${payload.notification.body || ''}`);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -84,7 +103,7 @@ export default function TopBar({ profile }: { profile: { avatarUrl?: string; nam
   }, [notifications]);
 
   return (
-    <div className="fixed top-4 right-4 flex items-center gap-4 z-50">
+    <div className="sticky top-0 left-0 w-full flex items-center gap-4 z-40 bg-white/90 dark:bg-[#181826]/90 backdrop-blur border-b border-gray-100 shadow-sm px-2 py-2 justify-end" style={{minHeight: 56}}>
       {/* Уведомления */}
       <button className="relative p-2 rounded-full hover:bg-[#F3EDFF] transition" onClick={handleOpenNotifications}>
         <span className="sr-only">Уведомления</span>

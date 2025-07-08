@@ -146,33 +146,33 @@ export default function CampusMap() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <BackButton className="mb-4" />
-      <h1 className="text-3xl font-bold mb-6">Маршрут от моего местоположения</h1>
-      <form onSubmit={buildRoute} className="mb-4 flex gap-2 flex-col md:flex-row">
+    <div className="min-h-screen bg-[#F8F6FB] p-2 sm:p-8">
+      <BackButton className="mb-2 sm:mb-4" />
+      <h1 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-6">Маршрут от моего местоположения</h1>
+      <form onSubmit={buildRoute} className="mb-3 sm:mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
         <button
           type="button"
-          className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold"
+          className="px-4 sm:px-6 py-2 rounded-md sm:rounded bg-[#A166FF] text-white font-semibold text-sm sm:text-base"
           onClick={handleGetLocation}
         >
           Использовать моё местоположение
         </button>
         <input
           ref={inputRef}
-          className="px-4 py-2 rounded border border-[#EAD7FF] w-full"
+          className="px-3 sm:px-4 py-2 rounded-md sm:rounded border border-[#EAD7FF] w-full text-sm sm:text-base"
           placeholder="Точка B (адрес, кафе, магазин...)"
           autoComplete="off"
         />
         <button
           type="submit"
-          className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold"
+          className="px-4 sm:px-6 py-2 rounded-md sm:rounded bg-[#A166FF] text-white font-semibold text-sm sm:text-base"
         >
           Построить маршрут
         </button>
       </form>
-      <div className="w-full h-3 bg-[#EAD7FF] rounded mb-4 overflow-hidden">
+      <div className="w-full h-2 sm:h-3 bg-[#EAD7FF] rounded mb-3 sm:mb-4 overflow-hidden">
         <div
-          className="h-3 bg-[#A166FF] transition-all"
+          className="h-2 sm:h-3 bg-[#A166FF] transition-all"
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>
@@ -180,12 +180,14 @@ export default function CampusMap() {
         ref={mapRef}
         style={{
           width: "100%",
-          height: "400px",
+          height: "260px",
+          maxHeight: "50vh",
           background: "#EAD7FF",
-          borderRadius: "16px",
+          borderRadius: "12px",
         }}
+        className="mb-2 sm:mb-0"
       />
-      <div className="mt-2 text-right text-sm text-[#A166FF] font-semibold">
+      <div className="mt-1 sm:mt-2 text-right text-xs sm:text-sm text-[#A166FF] font-semibold">
         {Math.round(progress * 100)}% маршрута пройдено
       </div>
     </div>

@@ -1,6 +1,21 @@
 import React, { useState } from "react";
 import BackButton from "@/components/BackButton";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Search, 
+  Filter, 
+  X, 
+  Briefcase, 
+  MapPin, 
+  Clock, 
+  User, 
+  Building, 
+  ChevronLeft, 
+  ChevronRight,
+  Loader2,
+  ExternalLink
+} from 'lucide-react';
 
 interface Vacancy {
   id: string;
@@ -60,18 +75,49 @@ const JobsFilterModal = ({
     setEducation, setExperience, setEmployment, setSchedule, setWorkFormat, setSearchIn, setSort, setPeriod, setPerPage
   } = filters;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white dark:bg-[#232336] rounded-2xl p-8 w-full max-w-2xl shadow-lg relative overflow-y-auto max-h-[90vh]">
-        <button className="absolute top-4 right-4 text-2xl" onClick={onClose}>&times;</button>
-        <h2 className="text-2xl font-bold mb-4">Фильтры</h2>
-        <div className="space-y-4">
-          <input type="text" value={exclude} onChange={e => setExclude(e.target.value)} placeholder="Исключить слова" className="w-full px-4 py-2 rounded border border-[#EAD7FF]" />
-          <input type="text" value={specialization} onChange={e => setSpecialization(e.target.value)} placeholder="Специализация" className="w-full px-4 py-2 rounded border border-[#EAD7FF]" />
-          <input type="text" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Отрасль" className="w-full px-4 py-2 rounded border border-[#EAD7FF]" />
-          <input type="text" value={region} onChange={e => setRegion(e.target.value)} placeholder="Регион" className="w-full px-4 py-2 rounded border border-[#EAD7FF]" />
+    <motion.div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div 
+        className="bg-white dark:bg-[#232336] rounded-2xl p-8 w-full max-w-2xl shadow-lg relative overflow-y-auto max-h-[90vh]"
+        initial={{ y: 50, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 50, opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.button 
+          className="absolute top-4 right-4 text-2xl hover:text-[#A166FF] transition-colors duration-200" 
+          onClick={onClose}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <X className="w-6 h-6" />
+        </motion.button>
+        <motion.h2 
+          className="text-2xl font-bold mb-4 flex items-center gap-2"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <Filter className="w-6 h-6 text-[#A166FF]" />
+          Фильтры
+        </motion.h2>
+        <motion.div 
+          className="space-y-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <input type="text" value={exclude} onChange={e => setExclude(e.target.value)} placeholder="Исключить слова" className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200" />
+          <input type="text" value={specialization} onChange={e => setSpecialization(e.target.value)} placeholder="Специализация" className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200" />
+          <input type="text" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Отрасль" className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200" />
+          <input type="text" value={region} onChange={e => setRegion(e.target.value)} placeholder="Регион" className="w-full px-4 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200" />
           <div className="flex flex-wrap gap-4 items-center">
-            <input type="number" value={salaryFrom} onChange={e => setSalaryFrom(e.target.value)} placeholder="Зарплата от" className="w-32 px-4 py-2 rounded border border-[#EAD7FF]" />
-            <select value={salaryCurrency} onChange={e => setSalaryCurrency(e.target.value)} className="w-28 px-2 py-2 rounded border border-[#EAD7FF]">
+            <input type="number" value={salaryFrom} onChange={e => setSalaryFrom(e.target.value)} placeholder="Зарплата от" className="w-32 px-4 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200" />
+            <select value={salaryCurrency} onChange={e => setSalaryCurrency(e.target.value)} className="w-28 px-2 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200">
               <option value="tenge">Тенге</option>
               <option value="usd">Доллары</option>
               <option value="eur">Евро</option>
@@ -118,7 +164,7 @@ const JobsFilterModal = ({
           </div>
           <div className="flex flex-wrap gap-4 items-center">
             <label className="font-semibold">График:</label>
-            <select value={schedule} onChange={e => setSchedule(e.target.value)} className="w-48 px-2 py-2 rounded border border-[#EAD7FF]">
+            <select value={schedule} onChange={e => setSchedule(e.target.value)} className="w-48 px-2 py-2 rounded-lg border border-[#EAD7FF] focus:outline-none focus:ring-2 focus:ring-[#A166FF] transition-all duration-200">
               <option value="">Любой</option>
               <option value="fullDay">Полный день</option>
               <option value="shift">Сменный</option>
@@ -152,15 +198,18 @@ const JobsFilterModal = ({
             <label><input type="radio" name="perPage" value="50" checked={perPage === '50'} onChange={() => setPerPage('50')} /> 50</label>
             <label><input type="radio" name="perPage" value="100" checked={perPage === '100'} onChange={() => setPerPage('100')} /> 100</label>
           </div>
-        </div>
-        <button
-          className="mt-6 w-full px-6 py-3 rounded-xl bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+        </motion.div>
+        <motion.button
+          className="mt-6 w-full px-6 py-3 rounded-xl bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center justify-center gap-2"
           onClick={onApply}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
+          <Search className="w-5 h-5" />
           Найти
-        </button>
-      </div>
-    </div>
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -258,6 +307,7 @@ const Jobs: React.FC = () => {
     setTimeout(() => searchJobs(), 0); // запуск поиска после обновления фильтра
   };
 
+  // VacancyCard адаптация
   const VacancyCard = ({ vacancy }: { vacancy: Vacancy }) => {
     const formatSalary = (salary: Vacancy['salary']) => {
       if (!salary) return 'Зарплата не указана';
@@ -268,16 +318,21 @@ const Jobs: React.FC = () => {
     };
 
     return (
-      <div 
-        className="bg-white dark:bg-[#232336] rounded-2xl p-6 border border-[#F3EDFF] dark:border-[#232336] shadow-sm hover:shadow-md transition-all cursor-pointer"
+      <motion.div 
+        className="bg-white dark:bg-[#232336] rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-[#F3EDFF] dark:border-[#232336] shadow-sm hover:shadow-md transition-all cursor-pointer"
         onClick={() => navigate(`/jobs/${vacancy.id}`)}
+        whileHover={{ y: -5, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start gap-2 sm:gap-0">
           <div>
-            <h3 className="text-xl font-semibold text-[#1E0E62] dark:text-white mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-[#1E0E62] dark:text-white mb-1 sm:mb-2">
               {vacancy.name}
             </h3>
-            <p className="text-[#A166FF] font-medium mb-4">
+            <p className="text-[#A166FF] font-medium mb-2 sm:mb-4 text-base sm:text-lg">
               {formatSalary(vacancy.salary)}
             </p>
           </div>
@@ -285,53 +340,63 @@ const Jobs: React.FC = () => {
             <img
               src={vacancy.employer.logo_urls.original}
               alt={vacancy.employer.name}
-              className="w-16 h-16 object-contain"
+              className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
             />
           )}
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 rounded-full text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF]">
+        <div className="flex flex-wrap gap-2 mb-2 sm:mb-0">
+          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF] flex items-center gap-1">
+            <MapPin className="w-3 h-3" />
             {vacancy.area.name}
           </span>
-          <span className="px-3 py-1 rounded-full text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF]">
+          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF] flex items-center gap-1">
+            <Clock className="w-3 h-3" />
             {vacancy.schedule.name}
           </span>
-          <span className="px-3 py-1 rounded-full text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF]">
+          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF] flex items-center gap-1">
+            <User className="w-3 h-3" />
             {vacancy.experience.name}
           </span>
-          <span className="px-3 py-1 rounded-full text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF]">
+          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-[#F3EDFF] dark:bg-[#181826] text-[#A166FF] flex items-center gap-1">
+            <Briefcase className="w-3 h-3" />
             {vacancy.employment.name}
           </span>
         </div>
 
         {vacancy.snippet.requirement && (
           <div>
-            <h4 className="font-medium text-[#1E0E62] dark:text-white mb-1">Требования:</h4>
-            <p className="text-[#8E8E93] dark:text-[#B0B0B0]" dangerouslySetInnerHTML={{ __html: vacancy.snippet.requirement }} />
+            <h4 className="font-medium text-[#1E0E62] dark:text-white mb-0.5 sm:mb-1 text-sm sm:text-base">Требования:</h4>
+            <p className="text-[#8E8E93] dark:text-[#B0B0B0] text-xs sm:text-sm" dangerouslySetInnerHTML={{ __html: vacancy.snippet.requirement }} />
           </div>
         )}
 
         {vacancy.snippet.responsibility && (
           <div>
-            <h4 className="font-medium text-[#1E0E62] dark:text-white mb-1">Обязанности:</h4>
-            <p className="text-[#8E8E93] dark:text-[#B0B0B0]" dangerouslySetInnerHTML={{ __html: vacancy.snippet.responsibility }} />
+            <h4 className="font-medium text-[#1E0E62] dark:text-white mb-0.5 sm:mb-1 text-sm sm:text-base">Обязанности:</h4>
+            <p className="text-[#8E8E93] dark:text-[#B0B0B0] text-xs sm:text-sm" dangerouslySetInnerHTML={{ __html: vacancy.snippet.responsibility }} />
           </div>
         )}
 
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-[#8E8E93] dark:text-[#B0B0B0]">{vacancy.employer.name}</p>
-          <a
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-3 sm:mt-4 gap-2 sm:gap-0">
+          <p className="text-[#8E8E93] dark:text-[#B0B0B0] flex items-center gap-1 text-xs sm:text-base">
+            <Building className="w-4 h-4" />
+            {vacancy.employer.name}
+          </p>
+          <motion.a
             href={vacancy.alternate_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-full bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+            className="px-3 sm:px-4 py-2 rounded-full bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2 text-xs sm:text-sm"
             onClick={(e) => e.stopPropagation()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
+            <ExternalLink className="w-4 h-4" />
             Откликнуться
-          </a>
+          </motion.a>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -340,112 +405,192 @@ const Jobs: React.FC = () => {
   const totalPages = Math.ceil(vacancies.length / pageSize);
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <BackButton className="mb-4" />
-      <h1 className="text-3xl font-bold mb-6">Поиск вакансий</h1>
+    <motion.div 
+      className="min-h-screen bg-[#F8F6FB] p-4 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <BackButton className="mb-2 sm:mb-4" />
+      <motion.h1 
+        className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Briefcase className="w-7 h-7 sm:w-8 sm:h-8 text-[#A166FF]" />
+        Поиск вакансий
+      </motion.h1>
       {/* Поисковая строка с фильтром и кнопкой поиска */}
-      <form onSubmit={searchJobs} className="mb-8">
-        <div className="flex items-center w-full max-w-2xl mx-auto">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </span>
+      <motion.form 
+        onSubmit={searchJobs} 
+        className="mb-6 sm:mb-8"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 items-stretch sm:items-center w-full max-w-2xl mx-auto">
+          <motion.div 
+            className="relative flex-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Профессия, должность или компания"
-              className="w-full pl-10 pr-16 py-3 rounded-xl border-2 border-blue-400 focus:outline-none text-base bg-white placeholder-gray-400"
+              className="w-full pl-10 pr-12 sm:pr-16 py-3 rounded-lg sm:rounded-xl border-2 border-blue-400 focus:outline-none text-sm sm:text-base bg-white placeholder-gray-400 transition-all duration-200"
             />
-            <button
+            <motion.button
               type="button"
               onClick={() => setShowFilters(true)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-100 hover:bg-gray-200 rounded-xl p-2 transition"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-100 hover:bg-gray-200 rounded-lg sm:rounded-xl p-2 transition-colors duration-200"
               aria-label="Фильтр"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="6" cy="12" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="18" cy="12" r="2" />
-                <line x1="6" y1="14" x2="6" y2="20" />
-                <line x1="12" y1="14" x2="12" y2="20" />
-                <line x1="18" y1="14" x2="18" y2="20" />
-              </svg>
-            </button>
-          </div>
-          <button
+              <Filter className="w-5 h-5" />
+            </motion.button>
+          </motion.div>
+          <motion.button
             type="submit"
-            className="ml-4 px-6 py-3 rounded-xl bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+            className="mt-2 sm:mt-0 sm:ml-4 px-4 sm:px-6 py-3 rounded-lg sm:rounded-xl bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2 text-base"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
+            <Search className="w-5 h-5" />
             Найти
-          </button>
+          </motion.button>
         </div>
-      </form>
+      </motion.form>
       {/* Модалка фильтров */}
-      <JobsFilterModal
-        open={showFilters}
-        onClose={() => setShowFilters(false)}
-        onApply={() => { setShowFilters(false); searchJobs(); }}
-        filters={{
-          exclude, specialization, industry, region, salaryFrom, salaryCurrency, onlyWithSalary,
-          education, experience, employment, schedule, workFormat, searchIn, sort, period, perPage,
-          setExclude, setSpecialization, setIndustry, setRegion, setSalaryFrom, setSalaryCurrency, setOnlyWithSalary,
-          setEducation, setExperience, setEmployment, setSchedule, setWorkFormat, setSearchIn, setSort, setPeriod, setPerPage
-        }}
-        setFilters={() => {}}
-      />
+      <AnimatePresence>
+        <JobsFilterModal
+          open={showFilters}
+          onClose={() => setShowFilters(false)}
+          onApply={() => { setShowFilters(false); searchJobs(); }}
+          filters={{
+            exclude, specialization, industry, region, salaryFrom, salaryCurrency, onlyWithSalary,
+            education, experience, employment, schedule, workFormat, searchIn, sort, period, perPage,
+            setExclude, setSpecialization, setIndustry, setRegion, setSalaryFrom, setSalaryCurrency, setOnlyWithSalary,
+            setEducation, setExperience, setEmployment, setSchedule, setWorkFormat, setSearchIn, setSort, setPeriod, setPerPage
+          }}
+          setFilters={() => {}}
+        />
+      </AnimatePresence>
 
-      {clusters.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Фильтры</h2>
-          <div className="flex flex-wrap gap-2">
-            {clusters.map((cluster) => (
-              <button
-                key={cluster.id}
-                onClick={() => handleClusterClick(cluster.id, cluster.items[0].value)}
-                className="px-4 py-2 rounded-full bg-[#F3EDFF] text-[#A166FF] font-medium hover:bg-[#EAD7FF] transition"
-              >
-                {cluster.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {clusters.length > 0 && (
+          <motion.div 
+            className="mb-6 sm:mb-8"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h2 className="text-xl font-semibold mb-4">Фильтры</h2>
+            <div className="flex flex-nowrap sm:flex-wrap gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-[#EAD7FF]">
+              {clusters.map((cluster, index) => (
+                <motion.button
+                  key={cluster.id}
+                  onClick={() => handleClusterClick(cluster.id, cluster.items[0].value)}
+                  className="px-3 sm:px-4 py-2 rounded-full bg-[#F3EDFF] text-[#A166FF] font-medium hover:bg-[#EAD7FF] transition-colors duration-200 text-xs sm:text-sm"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+                >
+                  {cluster.name}
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
-        <div className="text-center py-8">Загрузка...</div>
+        <motion.div 
+          className="text-center py-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Loader2 className="animate-spin h-8 w-8 text-[#A166FF] mx-auto" />
+        </motion.div>
       ) : error ? (
-        <div className="text-center py-8 text-red-500">{error}</div>
+        <motion.div 
+          className="text-center py-8 text-red-500"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {error}
+        </motion.div>
       ) : vacancies.length === 0 ? (
-        <div className="text-center py-8 text-[#8E8E93]">Вакансии не найдены</div>
+        <motion.div 
+          className="text-center py-8 text-[#8E8E93]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Вакансии не найдены
+        </motion.div>
       ) : (
         <>
-          <div className="space-y-6">
-            {pagedVacancies.map((vacancy) => (
-              <VacancyCard key={vacancy.id} vacancy={vacancy} />
-            ))}
-          </div>
+          <motion.div 
+            className="space-y-4 sm:space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <AnimatePresence>
+              {pagedVacancies.map((vacancy, index) => (
+                <motion.div
+                  key={vacancy.id}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                >
+                  <VacancyCard vacancy={vacancy} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-8">
-              <button
-                className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold disabled:opacity-50"
+            <motion.div 
+              className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4 mt-6 sm:mt-8"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <motion.button
+                className="px-3 sm:px-4 py-2 rounded-md sm:rounded-lg bg-gray-100 text-gray-700 font-semibold disabled:opacity-50 hover:bg-gray-200 transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-              >Назад</button>
-              <span className="text-lg font-medium">{page} / {totalPages}</span>
-              <button
-                className="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold disabled:opacity-50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Назад
+              </motion.button>
+              <span className="text-base sm:text-lg font-medium">{page} / {totalPages}</span>
+              <motion.button
+                className="px-3 sm:px-4 py-2 rounded-md sm:rounded-lg bg-gray-100 text-gray-700 font-semibold disabled:opacity-50 hover:bg-gray-200 transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-              >Вперёд</button>
-            </div>
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Вперёд
+                <ChevronRight className="w-4 h-4" />
+              </motion.button>
+            </motion.div>
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 

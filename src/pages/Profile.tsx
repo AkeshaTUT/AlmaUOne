@@ -8,6 +8,9 @@ import BackButton from "@/components/BackButton";
 import ProfileEditForm from "@/components/ProfileEditForm";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@/components/Avatar";
+import { motion } from 'framer-motion';
+import { Settings, Edit, X, MessageCircle, UserMinus, Users, User } from 'lucide-react';
+import GPAChart from "@/components/GPAChart";
 
 const defaultProfile = {
   name: "",
@@ -40,9 +43,14 @@ export default function Profile() {
   const [friends, setFriends] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!navigator.onLine) {
+      setError('Нет соединения с интернетом. Проверьте подключение.');
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('onAuthStateChanged', user);
       if (user) {
+        setLoading(true);
         try {
           const ref = doc(db, "users", user.uid);
           const snap = await getDoc(ref);
@@ -50,7 +58,6 @@ export default function Profile() {
             setUserData(snap.data());
             setForm(snap.data());
             setError(null);
-            console.log('Profile loaded from Firestore:', snap.data());
           } else {
             // Автоматически создаём профиль с дефолтными значениями
             await setDoc(ref, { ...defaultProfile, email: user.email });
@@ -60,7 +67,12 @@ export default function Profile() {
             console.log('Profile created in Firestore');
           }
         } catch (e) {
-          setError('Ошибка при работе с Firestore: ' + (e as Error).message);
+          const msg = (e as Error).message;
+          if (msg.includes('offline')) {
+            setError('Нет соединения с Firestore. Проверьте интернет или настройки.');
+          } else {
+            setError('Ошибка при работе с Firestore: ' + msg);
+          }
           console.error('Firestore error:', e);
         }
         setLoading(false);
@@ -186,52 +198,105 @@ export default function Profile() {
     setUploading(false);
   };
 
-  if (loading) return <div>Загрузка...</div>;
+  if (loading) return (
+    <motion.div 
+      className="min-h-screen flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="text-lg text-gray-600">Загрузка...</div>
+    </motion.div>
+  );
+  
   if ((!userData && !editMode) || error) return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <div className="bg-white rounded-xl shadow p-8">
+    <motion.div 
+      className="min-h-screen flex flex-col items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div 
+        className="bg-white rounded-xl shadow-lg p-8"
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="text-red-600 font-bold mb-4">{error || 'Профиль не найден'}</div>
-        <button
+        <motion.button
           onClick={handleCreateProfile}
-          className="px-6 py-2 rounded-full bg-[#A166FF] text-white font-semibold"
+          className="px-6 py-2 rounded-lg bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           Создать профиль вручную
-        </button>
-      </div>
-    </div>
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <BackButton className="mb-4" />
-      <div className="w-full max-w-3xl bg-white rounded-3xl shadow-xl p-8 mt-8">
-        <div className="flex flex-col items-center mb-6">
+    <motion.div 
+      className="min-h-screen bg-[#F8F6FB] p-2 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <BackButton className="mb-2 sm:mb-4" />
+      <motion.div 
+        className="w-full max-w-full sm:max-w-3xl bg-white rounded-3xl shadow-xl p-2 sm:p-8 mt-4 sm:mt-8"
+        initial={{ y: 50, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <motion.div 
+          className="flex flex-col items-center mb-4 sm:mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           {/* Аватар */}
-          <Avatar src={form.avatarUrl} name={form.name} email={form.email} size={96} className="mb-2" />
+          <Avatar src={form.avatarUrl} name={form.name} email={form.email} size={80} className="mb-2" />
           {/* Кнопка Настройки */}
-          <button
-            className="mt-2 px-4 py-2 rounded bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition"
+          <motion.button
+            className="mt-2 px-4 py-2 rounded-lg bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition-colors duration-200 flex items-center gap-2 text-sm"
             onClick={() => navigate('/settings')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
+            <Settings className="w-4 h-4" />
             Настройки
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
         {/* Список друзей */}
-        <div className="mb-6">
-          <div className="font-semibold text-lg mb-2 text-[#A166FF]">Друзья</div>
+        <motion.div 
+          className="mb-4 sm:mb-6"
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <div className="font-semibold text-base sm:text-lg mb-2 text-[#A166FF] flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Друзья
+          </div>
           {friends.length === 0 ? (
             <div className="text-gray-400">Нет друзей</div>
           ) : (
-            <div className="flex flex-wrap gap-4">
-              {friends.map(friend => (
-                <div key={friend.id} className="flex items-center gap-3 bg-[#F3EDFF] rounded-xl px-4 py-2">
-                  <Avatar src={friend.avatarUrl} name={friend.name} email={friend.email} size={40} />
+            <div className="flex flex-wrap gap-2 sm:gap-4">
+              {friends.map((friend, index) => (
+                <motion.div 
+                  key={friend.id} 
+                  className="flex items-center gap-2 sm:gap-3 bg-[#F3EDFF] rounded-xl px-2 py-1 sm:px-4 sm:py-2"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Avatar src={friend.avatarUrl} name={friend.name} email={friend.email} size={32} />
                   <div>
-                    <div className="font-medium text-[#1E0E62]">{friend.name || 'Пользователь'}</div>
+                    <div className="font-medium text-[#1E0E62] text-sm sm:text-base">{friend.name || 'Пользователь'}</div>
                     <div className="text-xs text-gray-500">{friend.email}</div>
                   </div>
-                  <button
-                    className="ml-2 px-3 py-1 rounded bg-red-100 text-red-600 text-xs font-semibold hover:bg-red-200"
+                  <motion.button
+                    className="ml-2 px-2 py-1 sm:px-3 rounded-lg bg-red-100 text-red-600 text-xs font-semibold hover:bg-red-200 transition-colors duration-200"
                     onClick={async () => {
                       // Удалить друга у себя
                       const newFriends = { ...userData.friends };
@@ -239,49 +304,82 @@ export default function Profile() {
                       await updateDoc(doc(db, 'users', auth.currentUser.uid), { friends: newFriends });
                       setUserData((prev: any) => ({ ...prev, friends: newFriends }));
                     }}
-                  >Удалить</button>
-                  <button
-                    className="ml-2 px-3 py-1 rounded bg-[#A166FF] text-white text-xs font-semibold hover:bg-[#8A4FD8]"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <UserMinus className="w-3 h-3" />
+                  </motion.button>
+                  <motion.button
+                    className="ml-2 px-2 py-1 sm:px-3 rounded-lg bg-[#A166FF] text-white text-xs font-semibold hover:bg-[#8A4FD8] transition-colors duration-200"
                     onClick={() => {
                       // Перейти в чат с этим пользователем
                       const chatId = [auth.currentUser.uid, friend.id].sort().join('_');
                       navigate(`/chat?chatId=${chatId}`);
                     }}
-                  >Открыть чат</button>
-                </div>
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                  </motion.button>
+                </motion.div>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
         {showEdit ? (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-[#232336] rounded-2xl p-8 w-full max-w-lg shadow-lg relative">
-              <button
-                className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-[#A166FF]"
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="bg-white dark:bg-[#232336] rounded-2xl p-8 w-full max-w-lg shadow-lg relative"
+              initial={{ y: 50, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 50, opacity: 0, scale: 0.9 }}
+            >
+              <motion.button
+                className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-[#A166FF] transition-colors duration-200"
                 onClick={() => setShowEdit(false)}
-              >×</button>
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <X className="w-6 h-6" />
+              </motion.button>
               <ProfileEditForm
                 initial={form}
                 onSave={(data) => { setForm(data); setUserData(data); setShowEdit(false); }}
                 onCancel={() => setShowEdit(false)}
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ) : (
-          <>
-            <div className="text-3xl font-bold mb-2">{form.name}</div>
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <div className="text-3xl font-bold mb-2 flex items-center gap-2">
+              <User className="w-8 h-8 text-[#A166FF]" />
+              {form.name}
+            </div>
             <div className="text-[#A166FF] font-medium mb-2">{form.status}</div>
             <div className="mb-4">{form.about || "О себе..."}</div>
-            <button
-              className="px-6 py-2 rounded bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition"
+            <motion.button
+              className="px-6 py-2 rounded-lg bg-[#A166FF] text-white font-semibold hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2"
               onClick={() => setShowEdit(true)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              <Edit className="w-4 h-4" />
               Редактировать
-            </button>
-          </>
+            </motion.button>
+          </motion.div>
         )}
-        {/* ...остальной профиль... */}
-      </div>
-    </div>
+        {/* GPA Chart */}
+        <GPAChart />
+      </motion.div>
+    </motion.div>
   );
 } 

@@ -10,7 +10,7 @@ export const useIncomingCall = () => {
 
   useEffect(() => {
     const currentUser = auth.currentUser;
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.uid) return;
 
     console.log('[useIncomingCall] Инициализация для пользователя:', currentUser.uid);
 
@@ -52,7 +52,7 @@ export const useIncomingCall = () => {
         }
       },
       (error) => {
-        console.error('[useIncomingCall] Ошибка подписки:', error);
+        console.error('[useIncomingCall] Firestore Listen error:', error);
       }
     );
 

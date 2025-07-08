@@ -115,25 +115,25 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0"
       onClick={handleBackdropClick}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-lg p-6 w-full max-w-4xl relative"
+        className="bg-white rounded-md sm:rounded-lg p-2 sm:p-6 w-full max-w-xs sm:max-w-4xl relative"
         onClick={e => e.stopPropagation()}
       >
         {/* Status Bar */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-2 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${
               callState === 'accepted' ? 'bg-green-500' :
               callState === 'connecting' ? 'bg-yellow-500' :
               callState === 'ringing' ? 'bg-blue-500' : 'bg-red-500'
             }`} />
-            <span className="text-sm font-medium">
+            <span className="text-xs sm:text-sm font-medium">
               {callState === 'accepted' ? 'Соединение установлено' :
                 callState === 'connecting' ? 'Установка соединения...' :
                   callState === 'ringing' ? 'Входящий звонок' :
@@ -141,15 +141,15 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
             </span>
           </div>
           {diagnostics.warning && (
-            <div className="text-red-500 text-sm flex items-center gap-1">
+            <div className="text-red-500 text-xs sm:text-sm flex items-center gap-1">
               <FaExclamationTriangle className="w-4 h-4" />
               {diagnostics.warning}
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
           {/* Remote Video */}
-          <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+          <div className="relative aspect-video bg-gray-900 rounded-md sm:rounded-lg overflow-hidden">
             <video
               ref={remoteVideoRef}
               autoPlay
@@ -162,7 +162,7 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
                 ref={pipVideoRef}
                 autoPlay
                 playsInline
-                className="absolute bottom-4 right-4 w-36 h-28 rounded-lg border-2 border-white shadow-xl pointer-events-none z-10"
+                className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-20 h-16 sm:w-36 sm:h-28 rounded-md sm:rounded-lg border-2 border-white shadow-xl pointer-events-none z-10"
                 muted
               />
             )}
@@ -174,7 +174,7 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
             )}
           </div>
           {/* Local Video */}
-          <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
+          <div className="relative aspect-video bg-gray-900 rounded-md sm:rounded-lg overflow-hidden">
             <video
               ref={localVideoRef}
               autoPlay
@@ -193,74 +193,74 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
           </div>
         </div>
         {/* Controls */}
-        <div className="mt-4 flex justify-center gap-4">
+        <div className="mt-3 sm:mt-4 flex flex-wrap justify-center gap-2 sm:gap-4">
           <button
             onClick={handleMuteToggle}
             disabled={!isCallActive}
-            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isMuted ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`p-2 sm:p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isMuted ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={isMuted ? "Включить микрофон" : "Выключить микрофон"}
           >
             {isMuted
-              ? <FaMicrophoneSlash className="w-6 h-6 text-white" />
-              : <FaMicrophone className="w-6 h-6 text-white" />}
+              ? <FaMicrophoneSlash className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              : <FaMicrophone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
           </button>
           <button
             onClick={handleVideoToggle}
             disabled={!isCallActive}
-            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : !isVideoEnabled ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`p-2 sm:p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : !isVideoEnabled ? 'bg-red-500' : 'bg-green-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={!isVideoEnabled ? "Включить видео" : "Выключить видео"}
           >
             {!isVideoEnabled
-              ? <FaVideoSlash className="w-6 h-6 text-white" />
-              : <FaVideo className="w-6 h-6 text-white" />}
+              ? <FaVideoSlash className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              : <FaVideo className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
           </button>
           <button
             onClick={handleScreenShareToggle}
             disabled={!isCallActive}
-            className={`p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isScreenSharing ? 'bg-green-500' : 'bg-red-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`p-2 sm:p-3 rounded-full ${!isCallActive ? 'bg-gray-200' : isScreenSharing ? 'bg-green-500' : 'bg-red-500'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={isScreenSharing ? "Остановить демонстрацию экрана" : "Начать демонстрацию экрана"}
           >
-            <FaDesktop className="w-6 h-6 text-white" />
+            <FaDesktop className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
           <button
             onClick={toggleCameraOverlay}
             disabled={!isScreenSharing}
-            className={`p-3 rounded-full ${showCameraOverlay ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`p-2 sm:p-3 rounded-full ${showCameraOverlay ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed`}
             title={showCameraOverlay ? "Отключить камеру поверх" : "Включить камеру поверх"}
           >
-            <FaVideo className="w-6 h-6 text-white" />
+            <FaVideo className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
           <button
             onClick={switchCamera}
             disabled={!isCallActive}
-            className="p-3 rounded-full bg-gray-200 hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 sm:p-3 rounded-full bg-gray-200 hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Сменить камеру"
           >
-            <FaCamera className="w-6 h-6 text-gray-700" />
+            <FaCamera className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
           </button>
           <button
             onClick={muteRemote}
             disabled={!isCallActive || hasConnectionError}
-            className="p-3 rounded-full bg-gray-200 hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 sm:p-3 rounded-full bg-gray-200 hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Приглушить собеседника"
           >
-            <FaVolumeUp className="w-6 h-6 text-gray-700" />
+            <FaVolumeUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
           </button>
           <button
             onClick={endCall}
-            className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white"
+            className="p-2 sm:p-3 rounded-full bg-red-600 hover:bg-red-700 text-white"
             title="Завершить звонок"
           >
-            <FaPhoneSlash className="w-6 h-6" />
+            <FaPhoneSlash className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
         {/* Bitrate and tracks info */}
-        <div className="mt-4 text-sm text-gray-600 flex flex-col items-center">
+        <div className="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-600 flex flex-col items-center">
           <div>Bitrate: <span className="font-semibold">{(diagnostics.bitrate / 1000).toFixed(1)} kbps</span></div>
           <div>Local Tracks: <span className="font-semibold">{diagnostics.localTracks?.length || 0}</span> | Remote Tracks: <span className="font-semibold">{diagnostics.remoteTracks?.length || 0}</span></div>
         </div>
         {error && (
-          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-red-100 text-red-700 rounded-md sm:rounded-lg text-xs sm:text-base">
             <div className="flex items-center gap-2 mb-2">
               <FaExclamationTriangle className="w-5 h-5" />
               <span>{error}</span>
@@ -279,16 +279,16 @@ export const CallModal: React.FC<CallModalProps> = ({ callConfig, onClose }) => 
           <div className="mt-4">
             <button
               onClick={() => setShowDiagnostics(!showDiagnostics)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-xs sm:text-sm text-gray-500 hover:text-gray-700"
             >
               {showDiagnostics ? 'Скрыть диагностику' : 'Показать диагностику'}
             </button>
           </div>
         )}
         {process.env.NODE_ENV === 'development' && showDiagnostics && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-sm">
+          <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-100 rounded-md sm:rounded-lg text-xs sm:text-sm">
             <h4 className="font-semibold mb-2">Diagnostics:</h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>ICE State: {diagnostics.iceState}</div>
               <div>Connection State: {diagnostics.connectionState}</div>
               <div>Has Relay: {diagnostics.hasRelay ? 'Yes' : 'No'}</div>

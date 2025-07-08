@@ -136,43 +136,45 @@ export default function TestCall() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <h1 className="text-2xl font-bold mb-4">Минимальный WebRTC тест</h1>
-      <div className="mb-4 flex gap-2">
-        <input value={roomId} onChange={e => setRoomId(e.target.value)} className="border p-2 mr-2" placeholder="roomId" />
-        <button onClick={startCall} className="bg-green-500 text-white px-4 py-2 rounded mr-2">Создать звонок</button>
-        <button onClick={acceptCall} className="bg-blue-500 text-white px-4 py-2 rounded">Принять звонок</button>
+    <div className="min-h-screen bg-[#F8F6FB] p-2 sm:p-8">
+      <h1 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">Минимальный WebRTC тест</h1>
+      <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row gap-2 w-full">
+        <input value={roomId} onChange={e => setRoomId(e.target.value)} className="border p-2 rounded-md flex-1 text-sm sm:text-base" placeholder="roomId" />
+        <button onClick={startCall} className="bg-green-500 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">Создать звонок</button>
+        <button onClick={acceptCall} className="bg-blue-500 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">Принять звонок</button>
       </div>
-      <div className="mb-4 flex gap-2">
-        <button onClick={testCamera} className="bg-purple-500 text-white px-4 py-2 rounded">Тест камеры</button>
-        <button onClick={testMic} className="bg-purple-500 text-white px-4 py-2 rounded">Тест микрофона</button>
-        <button onClick={testScreen} className="bg-purple-500 text-white px-4 py-2 rounded">Тест экрана</button>
+      <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row gap-2 w-full">
+        <button onClick={testCamera} className="bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">Тест камеры</button>
+        <button onClick={testMic} className="bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">Тест микрофона</button>
+        <button onClick={testScreen} className="bg-purple-500 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base">Тест экрана</button>
       </div>
-      <div className="flex gap-4 mb-4">
-        <div>
-          <div>Локальное видео</div>
-          <video ref={localVideoRef} autoPlay playsInline muted width={320} height={240} style={{background:'#222'}} />
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3 sm:mb-4 w-full">
+        <div className="flex-1">
+          <div className="text-xs sm:text-sm mb-1">Локальное видео</div>
+          <video ref={localVideoRef} autoPlay playsInline muted width={320} height={180} className="w-full max-w-xs sm:max-w-full rounded bg-[#222]" />
         </div>
-        <div>
-          <div>Remote видео</div>
-          <video ref={remoteVideoRef} autoPlay playsInline width={320} height={240} style={{background:'#222'}} />
+        <div className="flex-1">
+          <div className="text-xs sm:text-sm mb-1">Remote видео</div>
+          <video ref={remoteVideoRef} autoPlay playsInline width={320} height={180} className="w-full max-w-xs sm:max-w-full rounded bg-[#222]" />
         </div>
-        <div>
-          <div>Тест камеры</div>
-          <video ref={cameraTestRef} autoPlay playsInline muted width={160} height={120} style={{background:'#222'}} />
+      </div>
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3 sm:mb-4 w-full">
+        <div className="flex-1">
+          <div className="text-xs sm:text-sm mb-1">Тест камеры</div>
+          <video ref={cameraTestRef} autoPlay playsInline muted width={160} height={90} className="w-full max-w-xs sm:max-w-full rounded bg-[#222]" />
         </div>
-        <div>
-          <div>Тест экрана</div>
-          <video ref={screenTestRef} autoPlay playsInline muted width={160} height={120} style={{background:'#222'}} />
+        <div className="flex-1">
+          <div className="text-xs sm:text-sm mb-1">Тест экрана</div>
+          <video ref={screenTestRef} autoPlay playsInline muted width={160} height={90} className="w-full max-w-xs sm:max-w-full rounded bg-[#222]" />
         </div>
-        <div>
-          <div>Тест микрофона</div>
-          <div style={{width:160, height:120, background:'#222', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center'}}>
+        <div className="flex-1">
+          <div className="text-xs sm:text-sm mb-1">Тест микрофона</div>
+          <div className="w-full max-w-xs sm:max-w-full h-16 sm:h-24 rounded bg-[#222] text-white flex items-center justify-center">
             {audioTest ? '🎤 Говорите...' : '—'}
           </div>
         </div>
       </div>
-      <pre className="bg-gray-100 p-2 rounded h-48 overflow-auto text-xs">{log}</pre>
+      <pre className="bg-gray-100 p-2 rounded h-32 sm:h-48 overflow-auto text-xs w-full">{log}</pre>
       <div className="text-xs text-gray-500 mt-2">1. Проверьте камеру, микрофон и экран.<br/>2. Откройте эту страницу в двух вкладках, введите одинаковый roomId. В одной нажмите "Создать звонок", в другой — "Принять звонок".</div>
     </div>
   );

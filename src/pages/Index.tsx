@@ -10,8 +10,10 @@ import { doc, getDoc, collection, getDocs, query, orderBy } from "firebase/fires
 import TopBar from "@/components/TopBar";
 import Avatar from "@/components/Avatar";
 import { CommandDialog, CommandInput, CommandList, CommandGroup, CommandItem, CommandEmpty } from '@/components/ui/command';
-import { User, Briefcase, Book, Newspaper } from 'lucide-react';
+import { User, Briefcase, Book, Newspaper, Search, Menu } from 'lucide-react';
 import { courseraService } from '@/services/courseraService';
+import { motion } from 'framer-motion';
+import GPAChart from "@/components/GPAChart";
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,33 +65,52 @@ const Index = () => {
   return (
     <>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      {profile && <TopBar profile={profile} />}
-      <div className="min-h-screen bg-[#FDF9FF] flex flex-col items-center py-8" style={{ fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif' }}>
+      <motion.div 
+        className="min-h-screen bg-[#FDF9FF] flex flex-col items-center py-4 px-2 sm:py-8 sm:px-0" 
+        style={{ fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* Top bar */}
-        <div className="w-full max-w-6xl flex items-center justify-between mb-8">
+        <motion.div 
+          className="w-full max-w-6xl flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-8 px-1 sm:px-0"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           {/* Меню слева */}
-          <button className="w-10 h-10 flex items-center justify-center bg-transparent hover:bg-[#F3EDFF] transition" onClick={() => setSidebarOpen(true)}>
-            {/* SVG бургер */}
-            <svg width="24" height="24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="7" x2="20" y2="7" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="17" x2="20" y2="17" />
-            </svg>
-          </button>
+          <motion.button 
+            className="w-10 h-10 flex items-center justify-center bg-transparent hover:bg-[#F3EDFF] transition-colors duration-200 rounded-lg mb-2 sm:mb-0"
+            onClick={() => setSidebarOpen(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Menu className="w-6 h-6" />
+          </motion.button>
           {/* Поиск по центру */}
-          <div className="flex-1 flex justify-center">
-            <div className="relative w-full max-w-3xl">
+          <div className="flex-1 flex justify-center w-full">
+            <motion.div 
+              className="relative w-full max-w-full sm:max-w-3xl"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               <input
-                className="w-full rounded-full px-6 py-3 pr-12 border-2 border-[#3B82F6] focus:outline-none text-base shadow"
+                className="w-full rounded-full px-4 py-2 sm:px-6 sm:py-3 pr-10 sm:pr-12 border-2 border-[#3B82F6] focus:outline-none text-base shadow-lg transition-all duration-200 focus:shadow-xl text-gray-800 placeholder:text-gray-400"
                 placeholder="Search..."
                 style={{ fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif', fontWeight: 500 }}
                 onFocus={() => setSearchOpen(true)}
                 value={searchValue}
                 onChange={e => setSearchValue(e.target.value)}
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2">
-                <img src={searchIcon} alt="search" className="w-6 h-6" />
-              </span>
+              <motion.span 
+                className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-4"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Search className="w-6 h-6 text-gray-500" />
+              </motion.span>
               <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
                 <CommandInput placeholder="Поиск по всему сайту..." value={searchValue} onValueChange={setSearchValue} />
                 <CommandList>
@@ -124,10 +145,11 @@ const Index = () => {
                   </CommandGroup>
                 </CommandList>
               </CommandDialog>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+        {/* GPA Chart - теперь под поиском */}
+      </motion.div>
     </>
   );
 };

@@ -31,6 +31,7 @@ import VacancyDetails from "./pages/VacancyDetails";
 import { useAuth } from '@/hooks/useAuth';
 import React from 'react';
 import FriendsPage from "./pages/Friends";
+import GradesPage from "./pages/grades";
 
 const queryClient = new QueryClient();
 
@@ -233,6 +234,11 @@ function AppRoutes({ profile }: { profile: any }) {
           </ProtectedRoute>
         } />
         <Route path="/friends" element={<FriendsPage />} />
+        <Route path="/grades" element={
+          <ProtectedRoute>
+            <GradesPage />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

@@ -8,6 +8,15 @@ import { db, storage, auth } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Newspaper, 
+  Upload, 
+  Image, 
+  Loader2, 
+  Plus,
+  Camera
+} from 'lucide-react';
 
 // Пример данных (замени на загрузку из Firestore)
 const stories: Story[] = [
@@ -42,6 +51,8 @@ export default function NewsPage() {
     const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, snap => {
       setStories(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Story)));
+    }, error => {
+      console.error("Firestore Listen error (stories):", error);
     });
     return () => unsub();
   }, []);
@@ -82,28 +93,93 @@ export default function NewsPage() {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-[#F8F6FB] p-8">
-      <BackButton className="mb-4" />
+    <motion.div 
+      className="min-h-screen bg-[#F8F6FB] p-2 sm:p-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <BackButton className="mb-2 sm:mb-4" />
       <TopProfileBar />
-      <h1 className="text-3xl font-bold mb-6">Новости и истории</h1>
-      <div className="mb-4 flex items-center gap-4">
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        <button
+      <motion.h1 
+        className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-6 text-[#1E0E62] dark:text-white flex items-center gap-2 sm:gap-3"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-[#A166FF]" />
+        Новости и истории
+      </motion.h1>
+      
+      <motion.div 
+        className="mb-2 sm:mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 bg-white dark:bg-[#232336] rounded-lg sm:rounded-2xl p-2 sm:p-4 shadow-md sm:shadow-lg"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <motion.label 
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md sm:rounded-lg bg-[#F3EDFF] text-[#A166FF] font-semibold hover:bg-[#EAD7FF] transition-colors duration-200 cursor-pointer text-xs sm:text-base"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Camera className="w-4 h-4" />
+          Выбрать фото
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            className="hidden"
+          />
+        </motion.label>
+        
+        {file && (
+          <motion.div 
+            className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-[#A166FF]"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Image className="w-4 h-4" />
+            {file.name}
+          </motion.div>
+        )}
+        
+        <motion.button
           onClick={handleUpload}
           disabled={!file || uploading}
-          className="px-4 py-2 rounded bg-[#A166FF] text-white font-semibold disabled:opacity-50"
+          className="px-3 sm:px-4 py-2 rounded-md sm:rounded-lg bg-[#A166FF] text-white font-semibold disabled:opacity-50 hover:bg-[#8A4FD8] transition-colors duration-200 flex items-center gap-2 text-xs sm:text-base"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
+          {uploading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4" />
+          )}
           {uploading ? 'Загрузка...' : 'Добавить историю'}
-        </button>
-      </div>
-      <StoryBar
-        stories={stories}
-        onStoryClick={setActiveStory}
-        onAddClick={() => document.querySelector('input[type=file]')?.click()}
-        currentUser={currentUser}
-      />
-      <StoryModal story={activeStory} onClose={() => setActiveStory(null)} />
+        </motion.button>
+      </motion.div>
+      
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <StoryBar
+          stories={stories}
+          onStoryClick={setActiveStory}
+          onAddClick={() => document.querySelector('input[type=file]')?.click()}
+          currentUser={currentUser}
+        />
+      </motion.div>
+      
+      <AnimatePresence>
+        {activeStory && (
+          <StoryModal story={activeStory} onClose={() => setActiveStory(null)} />
+        )}
+      </AnimatePresence>
+      
       {/* Здесь можно добавить ленту новостей, посты и т.д. */}
-    </div>
+    </motion.div>
   );
 } 
